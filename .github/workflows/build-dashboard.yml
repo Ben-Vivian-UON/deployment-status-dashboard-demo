@@ -21,7 +21,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq
           curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/githubcli.list > /dev/null
           sudo apt-get update
           sudo apt-get install -y gh
 
@@ -31,8 +31,7 @@ jobs:
       - name: Fetch deployment data
         id: fetch_data
         run: |
-          # Example: We stored the repos in repos.txt at the root of the GH pages branch
-          # or you could store it in the main branch. Adjust the path as needed.
+          # If the repos.txt file doesn't exist, exit early.
           if [ ! -f repos.txt ]; then
             echo "repos.txt not found - create it with the list of repos!"
             exit 1
@@ -42,30 +41,28 @@ jobs:
 
           while read REPO; do
             echo "Fetching data from $REPO..."
-            
-            # Attempt to get the DEPLOYMENT_STATUS_JSON variable from $REPO
-            # This assumes it's a "repo-level" variable named DEPLOYMENT_STATUS_JSON
             CURRENT_JSON=$(gh api \
               repos/$REPO/actions/variables/DEPLOYMENT_STATUS_JSON \
               --jq '.value' 2>/dev/null || echo '{}'
             )
 
-            # If the repo doesn't have the variable, or it's private/inaccessible, CURRENT_JSON might be '{}'.
             echo "Repo: $REPO => $CURRENT_JSON"
 
-            # Example approach: push each repo's JSON into an array, with a label for that repo
-            # So we unify them under one structure
-            # e.g. [ { "repo":"org/projectA", "status": {...} }, { "repo":"org/projectB", "status": {...}} ]
+            # Example approach: unify them under one structure:
+            # [ { "repo": "org/projectA", "status": {...} }, { "repo": "org/projectB", "status": {...}} ]
             ALL_DATA=$(echo "$ALL_DATA" | jq --arg r "$REPO" --argjson c "$CURRENT_JSON" '
               . + [ { "repo": $r, "status": $c } ]
             ')
           done < repos.txt
 
           echo "Aggregated data: $ALL_DATA"
-          echo "allJson<<EOF" >> $GITHUB_OUTPUT
-          echo "$ALL_DATA" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
 
+          # Use braces to properly write a multiline output to $GITHUB_OUTPUT
+          {
+            echo "allJson<<EOF"
+            echo "$ALL_DATA"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Generate index.html
         run: |
@@ -90,7 +87,6 @@ jobs:
       
           # The aggregator's output is an array of objects like:
           # [ { "repo": "org/projectA", "status": { "ProjectName": [...] } }, ... ]
-          # We'll loop through each item, extracting relevant fields via jq.
           echo "$ALL_JSON" | jq -c '.[]' | while read -r item; do
             REPO=$(echo "$item" | jq -r '.repo')
             ENV_NAME=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].ENV_NAME // "N/A"')
