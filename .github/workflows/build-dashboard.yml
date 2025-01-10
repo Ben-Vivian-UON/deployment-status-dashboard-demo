@@ -67,18 +67,47 @@ jobs:
       - name: Generate index.html
         run: |
           ALL_JSON="${{ steps.fetch_data.outputs.allJson }}"
-
-          # Construct a basic HTML page
-          cat <<EOF > index.html
-          <html>
-            <head><title>Deployment Dashboard</title></head>
-            <body>
-              <h1>Deployment Dashboard</h1>
-              <p>Below is each repo's DEPLOYMENT_STATUS_JSON:</p>
-              <pre>$ALL_JSON</pre>
-            </body>
-          </html>
-EOF
+      
+          # Start building the HTML file
+          echo '<html>' > index.html
+          echo '  <head><title>Deployment Dashboard</title></head>' >> index.html
+          echo '  <body>' >> index.html
+          echo '    <h1>Deployment Dashboard</h1>' >> index.html
+          echo '    <table border="1" style="border-collapse: collapse; margin: 20px 0;">' >> index.html
+          echo '      <thead>' >> index.html
+          echo '        <tr>' >> index.html
+          echo '          <th>Repo</th>' >> index.html
+          echo '          <th>ENV_NAME</th>' >> index.html
+          echo '          <th>MostRecentDeploy</th>' >> index.html
+          echo '          <th>MostRecentDeployDate</th>' >> index.html
+          echo '          <th>MostRecentDeployStatus</th>' >> index.html
+          echo '        </tr>' >> index.html
+          echo '      </thead>' >> index.html
+          echo '      <tbody>' >> index.html
+      
+          # The aggregator's output is an array of objects like:
+          # [ { "repo": "org/projectA", "status": { "ProjectName": [...] } }, ... ]
+          # We'll loop through each item, extracting relevant fields via jq.
+          echo "$ALL_JSON" | jq -c '.[]' | while read -r item; do
+            REPO=$(echo "$item" | jq -r '.repo')
+            ENV_NAME=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].ENV_NAME // "N/A"')
+            MOST_RECENT=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeploy // "N/A"')
+            MOST_RECENT_DATE=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeployDate // "N/A"')
+            MOST_RECENT_STATUS=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeployStatus // "N/A"')
+      
+            echo '        <tr>' >> index.html
+            echo "          <td>$REPO</td>" >> index.html
+            echo "          <td>$ENV_NAME</td>" >> index.html
+            echo "          <td>$MOST_RECENT</td>" >> index.html
+            echo "          <td>$MOST_RECENT_DATE</td>" >> index.html
+            echo "          <td>$MOST_RECENT_STATUS</td>" >> index.html
+            echo '        </tr>' >> index.html
+          done
+      
+          echo '      </tbody>' >> index.html
+          echo '    </table>' >> index.html
+          echo '  </body>' >> index.html
+          echo '</html>' >> index.html
 
       - name: Commit and push to gh-pages
         run: |
