@@ -1,0 +1,89 @@
+name: Build Dashboard
+on:
+  schedule:
+    - cron: "0 * * * *"  # e.g. run every hour
+  workflow_dispatch:
+
+permissions:
+  contents: write  # needed to push to gh-pages
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out gh-pages branch
+        uses: actions/checkout@v3
+        with:
+          ref: gh-pages  # If gh-pages doesn't exist, create it first, or handle that logic
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y gh
+
+      - name: Auth with GitHub CLI using PAT
+        run: echo "${{ secrets.AGGREGATOR_PAT }}" | gh auth login --with-token
+
+      - name: Fetch deployment data
+        id: fetch_data
+        run: |
+          # Example: We stored the repos in repos.txt at the root of the GH pages branch
+          # or you could store it in the main branch. Adjust the path as needed.
+          if [ ! -f repos.txt ]; then
+            echo "repos.txt not found - create it with the list of repos!"
+            exit 1
+          fi
+
+          ALL_DATA='[]'  # Start as an empty JSON array
+
+          while read REPO; do
+            echo "Fetching data from $REPO..."
+            
+            # Attempt to get the DEPLOYMENT_STATUS_JSON variable from $REPO
+            # This assumes it's a "repo-level" variable named DEPLOYMENT_STATUS_JSON
+            CURRENT_JSON=$(gh api \
+              repos/$REPO/actions/variables/DEPLOYMENT_STATUS_JSON \
+              --jq '.value' 2>/dev/null || echo '{}'
+            )
+
+            # If the repo doesn't have the variable, or it's private/inaccessible, CURRENT_JSON might be '{}'.
+            echo "Repo: $REPO => $CURRENT_JSON"
+
+            # Example approach: push each repo's JSON into an array, with a label for that repo
+            # So we unify them under one structure
+            # e.g. [ { "repo":"org/projectA", "status": {...} }, { "repo":"org/projectB", "status": {...}} ]
+            ALL_DATA=$(echo "$ALL_DATA" | jq --arg r "$REPO" --argjson c "$CURRENT_JSON" '
+              . + [ { "repo": $r, "status": $c } ]
+            ')
+          done < repos.txt
+
+          echo "Aggregated data: $ALL_DATA"
+          echo "allJson=$ALL_DATA" >> $GITHUB_OUTPUT
+
+      - name: Generate index.html
+        run: |
+          ALL_JSON="${{ steps.fetch_data.outputs.allJson }}"
+
+          # Construct a basic HTML page
+          cat <<EOF > index.html
+          <html>
+            <head><title>Deployment Dashboard</title></head>
+            <body>
+              <h1>Deployment Dashboard</h1>
+              <p>Below is each repo's DEPLOYMENT_STATUS_JSON:</p>
+              <pre>$ALL_JSON</pre>
+            </body>
+          </html>
+EOF
+
+      - name: Commit and push to gh-pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Update dashboard" || echo "No changes to commit"
+          git push origin gh-pages
