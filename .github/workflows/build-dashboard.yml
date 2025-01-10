@@ -62,7 +62,10 @@ jobs:
           done < repos.txt
 
           echo "Aggregated data: $ALL_DATA"
-          echo "allJson=$ALL_DATA" >> $GITHUB_OUTPUT
+          echo "allJson<<EOF" >> $GITHUB_OUTPUT
+          echo "$ALL_DATA" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
 
       - name: Generate index.html
         run: |
