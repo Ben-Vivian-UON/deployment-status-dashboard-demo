@@ -1,7 +1,7 @@
 name: Build Dashboard
 on:
   schedule:
-    - cron: "0 * * * *"  # e.g. run every hour
+    - cron: "*/5 * * * *"  # run every 5 minutes
   workflow_dispatch:
 
 permissions:
@@ -49,7 +49,10 @@ jobs:
             echo "Repo: $REPO => $CURRENT_JSON"
 
             # Example approach: unify them under one structure:
-            # [ { "repo": "org/projectA", "status": {...} }, { "repo": "org/projectB", "status": {...}} ]
+            # [
+            #   { "repo": "org/projectA", "status": {...} },
+            #   { "repo": "org/projectB", "status": {...} }
+            # ]
             ALL_DATA=$(echo "$ALL_DATA" | jq --arg r "$REPO" --argjson c "$CURRENT_JSON" '
               . + [ { "repo": $r, "status": $c } ]
             ')
@@ -93,7 +96,7 @@ jobs:
             MOST_RECENT=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeploy // "N/A"')
             MOST_RECENT_DATE=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeployDate // "N/A"')
             MOST_RECENT_STATUS=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeployStatus // "N/A"')
-      
+
             echo '        <tr>' >> index.html
             echo "          <td>$REPO</td>" >> index.html
             echo "          <td>$ENV_NAME</td>" >> index.html
