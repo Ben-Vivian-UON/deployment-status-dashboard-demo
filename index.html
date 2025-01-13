@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Deployment Dashboard</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="scripts.js" defer></script>
 </head>
 <body>
   <h1>Deployment Dashboard</h1>
@@ -13,27 +14,27 @@
   <table>
     <thead>
       <tr>
-        <th class="center">Repository</th>
-        <th class="center">Environment</th>
-        <th class="center">Latest Release</th>
-        <th class="center">Last Deployed Date</th>
-        <th class="center">Status</th>
+        <th class="center" onclick="sortTable(0, 'string')">Repository</th>
+        <th class="center" onclick="sortTable(1, 'string')">Environment</th>
+        <th class="center" onclick="sortTable(2, 'string')">Latest Release</th>
+        <th class="center" onclick="sortTable(3, 'date')">Last Deployed Date</th>
+        <th class="center" onclick="sortTable(4, 'status')">Status</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td><a class='repo-title' href='https://github.com/Ben-Vivian-UON/env-var-deployment-status-demo-A' target='_blank'>Ben-Vivian-UON/env-var-deployment-status-demo-A</a></td>
+        <td><a class="repo-title" href="https://github.com/Ben-Vivian-UON/env-var-deployment-status-demo-A" target="_blank">Ben-Vivian-UON/env-var-deployment-status-demo-A</a></td>
         <td>dev</td>
         <td>Release-13</td>
         <td>13/01/2025 11:10:08 AM AEDT</td>
-        <td class='status-success'>success</td>
+        <td class="status-success">success</td>
       </tr>
       <tr>
-        <td><a class='repo-title' href='https://github.com/Ben-Vivian-UON/env-var-deployment-status-demo-B' target='_blank'>Ben-Vivian-UON/env-var-deployment-status-demo-B</a></td>
+        <td><a class="repo-title" href="https://github.com/Ben-Vivian-UON/env-var-deployment-status-demo-B" target="_blank">Ben-Vivian-UON/env-var-deployment-status-demo-B</a></td>
         <td>dev</td>
         <td>Release-13</td>
         <td>13/01/2025 02:11:55 PM AEDT</td>
-        <td class='status-success'>success</td>
+        <td class="status-success">success</td>
       </tr>
     </tbody>
   </table>
@@ -85,6 +86,6 @@
     </tbody>
   </table>
 </section>
-  <p class='last-updated'>Last Updated: 13/01/2025 03:39:24 PM AEDT</p>
+  <p class='last-updated'>Last Updated: 13/01/2025 03:49:34 PM AEDT</p>
 </body>
 </html>
