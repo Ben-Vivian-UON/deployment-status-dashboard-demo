@@ -31,13 +31,13 @@ jobs:
       - name: Fetch deployment data
         id: fetch_data
         run: |
-          # Exit early if repos.txt is missing or empty
+          # If the repos.txt file doesn't exist or is empty, exit early.
           if [ ! -s repos.txt ]; then
             echo "repos.txt is empty or missing!"
             exit 1
           fi
 
-          ALL_DATA='[]'  # Initialize an empty JSON array
+          ALL_DATA='[]'  # Start as an empty JSON array
 
           # Process each repository listed in repos.txt
           while read REPO; do
@@ -63,19 +63,21 @@ jobs:
 
           echo "Aggregated data: $ALL_DATA"
 
-          # Expose the aggregated data for the next step
+          # Write ALL_DATA to a file to ensure proper handling
+          echo "$ALL_DATA" > all_data.json
           echo "allJson<<EOF" >> $GITHUB_OUTPUT
-          echo "$ALL_DATA" >> $GITHUB_OUTPUT
+          cat all_data.json >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Debug Sanitized ALL_JSON
         run: |
-          echo "Sanitized ALL_JSON:"
-          echo "${{ steps.fetch_data.outputs.allJson }}" | jq '.'
+          echo "Sanitized ALL_JSON from file:"
+          cat all_data.json | jq '.'
 
       - name: Generate index.html
         run: |
-          ALL_JSON="${{ steps.fetch_data.outputs.allJson }}"
+          # Read ALL_JSON from file
+          ALL_JSON=$(cat all_data.json)
 
           # Start building the HTML
           echo '<html>' > index.html
