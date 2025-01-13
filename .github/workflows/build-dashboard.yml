@@ -165,9 +165,9 @@ jobs:
               fi
             
               echo '      <tr>' >> index.html
-              echo "        <td>$REL</td>" >> index.html
-              echo "        <td class='$STATUS_CLASS'>$OUT</td>" >> index.html
+              echo "        <td>$REL</td>" >> index.html              
               echo "        <td>$DT</td>" >> index.html
+              echo "        <td class='$STATUS_CLASS'>$OUT</td>" >> index.html
               echo '      </tr>' >> index.html
             done
 
