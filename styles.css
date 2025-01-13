@@ -37,13 +37,17 @@ table {
   overflow: hidden;
 }
 
+td {
+  text-align: left;
+}
+
 th, td {
   padding: 12px 15px;
-  text-align: left;
   border: 1px solid #ddd;
 }
 
 th {
+  text-align: center;
   background-color: #004a93;
   color: white;
   font-weight: bold;
