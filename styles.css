@@ -37,20 +37,20 @@ table {
   overflow: hidden;
 }
 
-td {
-  text-align: left;
-}
-
 th, td {
+  text-align: left;
   padding: 12px 15px;
   border: 1px solid #ddd;
 }
 
 th {
-  text-align: center;
   background-color: #004a93;
   color: white;
   font-weight: bold;
+}
+
+.center {
+  text-align: center;
 }
 
 tr:hover {
