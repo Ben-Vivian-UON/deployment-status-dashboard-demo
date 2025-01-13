@@ -14,7 +14,7 @@ jobs:
       - name: Check out gh-pages branch
         uses: actions/checkout@v3
         with:
-          ref: gh-pages  # If gh-pages doesn't exist, create it first, or handle that logic
+          ref: gh-pages  # If gh-pages doesn't exist, create it or handle that logic
 
       - name: Install dependencies
         run: |
@@ -41,18 +41,15 @@ jobs:
 
           while read REPO; do
             echo "Fetching data from $REPO..."
+
+            # Attempt to read 'DEPLOYMENT_STATUS_JSON' from that repo
             CURRENT_JSON=$(gh api \
               repos/$REPO/actions/variables/DEPLOYMENT_STATUS_JSON \
-              --jq '.value' 2>/dev/null || echo '{}'
-            )
+              --jq '.value' 2>/dev/null || echo '{}')
 
             echo "Repo: $REPO => $CURRENT_JSON"
 
-            # Example approach: unify them under one structure:
-            # [
-            #   { "repo": "org/projectA", "status": {...} },
-            #   { "repo": "org/projectB", "status": {...} }
-            # ]
+            # Build our aggregator array
             ALL_DATA=$(echo "$ALL_DATA" | jq --arg r "$REPO" --argjson c "$CURRENT_JSON" '
               . + [ { "repo": $r, "status": $c } ]
             ')
@@ -60,7 +57,7 @@ jobs:
 
           echo "Aggregated data: $ALL_DATA"
 
-          # Use braces to properly write a multiline output to $GITHUB_OUTPUT
+          # Expose ALL_DATA to next step using the multiline output approach
           {
             echo "allJson<<EOF"
             echo "$ALL_DATA"
@@ -70,12 +67,17 @@ jobs:
       - name: Generate index.html
         run: |
           ALL_JSON="${{ steps.fetch_data.outputs.allJson }}"
-      
-          # Start building the HTML file
+
+          # Start building our HTML page
           echo '<html>' > index.html
           echo '  <head><title>Deployment Dashboard</title></head>' >> index.html
           echo '  <body>' >> index.html
           echo '    <h1>Deployment Dashboard</h1>' >> index.html
+
+          ###############################################################################
+          # SECTION A: Top-Level Table (one row per repo)
+          ###############################################################################
+          echo '    <h2>Most Recent Deployments</h2>' >> index.html
           echo '    <table border="1" style="border-collapse: collapse; margin: 20px 0;">' >> index.html
           echo '      <thead>' >> index.html
           echo '        <tr>' >> index.html
@@ -87,9 +89,7 @@ jobs:
           echo '        </tr>' >> index.html
           echo '      </thead>' >> index.html
           echo '      <tbody>' >> index.html
-      
-          # The aggregator's output is an array of objects like:
-          # [ { "repo": "org/projectA", "status": { "ProjectName": [...] } }, ... ]
+
           echo "$ALL_JSON" | jq -c '.[]' | while read -r item; do
             REPO=$(echo "$item" | jq -r '.repo')
             ENV_NAME=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].ENV_NAME // "N/A"')
@@ -105,9 +105,50 @@ jobs:
             echo "          <td>$MOST_RECENT_STATUS</td>" >> index.html
             echo '        </tr>' >> index.html
           done
-      
+
           echo '      </tbody>' >> index.html
           echo '    </table>' >> index.html
+
+          ###############################################################################
+          # SECTION B (Optional): Full DeploymentHistory per repo
+          ###############################################################################
+          echo '    <h2>Full Deployment History</h2>' >> index.html
+
+          echo "$ALL_JSON" | jq -c '.[]' | while read -r item; do
+            REPO=$(echo "$item" | jq -r '.repo')
+            ENV_NAME=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].ENV_NAME // "N/A"')
+            echo "    <h3>History for $REPO ($ENV_NAME)</h3>" >> index.html
+
+            # Attempt to parse the entire .DeploymentHistory array
+            HISTORY=$(echo "$item" | jq -c '.status.ProjectName[0].ProcessName[0].DeploymentHistory // []')
+
+            echo '    <table border="1" style="border-collapse: collapse; margin: 20px 0;">' >> index.html
+            echo '      <thead>' >> index.html
+            echo '        <tr>' >> index.html
+            echo '          <th>DeployRelease</th>' >> index.html
+            echo '          <th>OutcomeStatus</th>' >> index.html
+            echo '          <th>DeployDate</th>' >> index.html
+            echo '        </tr>' >> index.html
+            echo '      </thead>' >> index.html
+            echo '      <tbody>' >> index.html
+
+            # Loop through each object in the .DeploymentHistory array
+            echo "$HISTORY" | jq -c '.[]' | while read -r hItem; do
+              REL=$(echo "$hItem" | jq -r '.DeployRelease // "N/A"')
+              OUT=$(echo "$hItem" | jq -r '.OutcomeStatus // "N/A"')
+              DT=$(echo "$hItem" | jq -r '.DeployDate // "N/A"')
+
+              echo '        <tr>' >> index.html
+              echo "          <td>$REL</td>" >> index.html
+              echo "          <td>$OUT</td>" >> index.html
+              echo "          <td>$DT</td>" >> index.html
+              echo '        </tr>' >> index.html
+            done
+
+            echo '      </tbody>' >> index.html
+            echo '    </table>' >> index.html
+          done
+
           echo '  </body>' >> index.html
           echo '</html>' >> index.html
 
