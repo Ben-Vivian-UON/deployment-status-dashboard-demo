@@ -161,7 +161,6 @@ jobs:
             echo '  </table>' >> index.html
           done
 
-          echo '  <footer>Deployment Dashboard &copy; 2025 - University of Newcastle</footer>' >> index.html
           echo '</body>' >> index.html
           echo '</html>' >> index.html
 
