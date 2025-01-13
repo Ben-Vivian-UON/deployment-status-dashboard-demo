@@ -189,8 +189,9 @@ jobs:
 
             echo '    </tbody>' >> index.html
             echo '  </table>' >> index.html
-            echo '</section>' >> index.html
           done
+
+          echo '</section>' >> index.html
           
           echo "  <p class='last-updated'>Last Updated: $LAST_UPDATED</p>" >> index.html
 
