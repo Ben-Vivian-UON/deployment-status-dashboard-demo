@@ -98,6 +98,7 @@ jobs:
           echo '  <meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
           echo '  <title>Deployment Dashboard</title>' >> index.html
           echo '  <link rel="stylesheet" href="styles.css">' >> index.html
+          echo '  <script src="scripts.js" defer></script>' >> index.html
           echo '</head>' >> index.html
           echo '<body>' >> index.html
 
@@ -109,11 +110,11 @@ jobs:
           echo '  <table>' >> index.html
           echo '    <thead>' >> index.html
           echo '      <tr>' >> index.html
-          echo '        <th class="center">Repository</th>' >> index.html
-          echo '        <th class="center">Environment</th>' >> index.html
-          echo '        <th class="center">Latest Release</th>' >> index.html
-          echo '        <th class="center">Last Deployed Date</th>' >> index.html
-          echo '        <th class="center">Status</th>' >> index.html
+          echo '        <th class="center" onclick="sortTable(0, \'string\')">Repository ▲▼</th>' >> index.html
+          echo '        <th class="center" onclick="sortTable(1, \'string\')">Environment ▲▼</th>' >> index.html
+          echo '        <th class="center" onclick="sortTable(2, \'string\')">Latest Release ▲▼</th>' >> index.html
+          echo '        <th class="center" onclick="sortTable(3, \'date\')">Last Deployed Date ▲▼</th>' >> index.html
+          echo '        <th class="center" onclick="sortTable(4, \'status\')">Status ▲▼</th>' >> index.html
           echo '      </tr>' >> index.html
           echo '    </thead>' >> index.html
           echo '    <tbody>' >> index.html
@@ -146,53 +147,6 @@ jobs:
           echo '  </table>' >> index.html
           echo '</section>' >> index.html
 
-          # Section B: Full Deployment History
-          echo '<section>' >> index.html
-          echo '  <h2>Full Deployment History</h2>' >> index.html
-
-          echo "$ALL_JSON" | jq -c '.[]' | while read -r item; do
-            REPO=$(echo "$item" | jq -r '.repo')
-            ENV_NAME=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].ENV_NAME // "N/A"')
-            echo "  <h3><a class='repo-title' href='https://github.com/$REPO' target='_blank'>$REPO</a> ($ENV_NAME)</h3>" >> index.html
-
-            HISTORY=$(echo "$item" | jq -c '.status.ProjectName[0].ProcessName[0].DeploymentHistory // []')
-
-            echo '  <table>' >> index.html
-            echo '    <thead>' >> index.html
-            echo '      <tr>' >> index.html
-            echo '        <th class="center">Release</th>' >> index.html
-            echo '        <th class="center">Date</th>' >> index.html
-            echo '        <th class="center">Status</th>' >> index.html
-            echo '      </tr>' >> index.html
-            echo '    </thead>' >> index.html
-            echo '    <tbody>' >> index.html
-
-            echo "$HISTORY" | jq -c '.[]' | while read -r hItem; do
-              REL=$(echo "$hItem" | jq -r '.DeployRelease // "N/A"')
-              OUT=$(echo "$hItem" | jq -r '.OutcomeStatus // "N/A"')
-              RAW_DT=$(echo "$hItem" | jq -r '.DeployDate // "N/A"')
-              DT=$(format_date "$RAW_DT")
-
-              # Determine the status class based on OUT
-              if [ "$OUT" = "success" ]; then
-                STATUS_CLASS="status-success"
-              else
-                STATUS_CLASS="status-fail"
-              fi
-
-              echo '      <tr>' >> index.html
-              echo "        <td>$REL</td>" >> index.html
-              echo "        <td>$DT</td>" >> index.html
-              echo "        <td class='$STATUS_CLASS'>$OUT</td>" >> index.html
-              echo '      </tr>' >> index.html
-            done
-
-            echo '    </tbody>' >> index.html
-            echo '  </table>' >> index.html
-          done
-
-          echo '</section>' >> index.html
-          
           echo "  <p class='last-updated'>Last Updated: $LAST_UPDATED</p>" >> index.html
 
           echo '</body>' >> index.html
@@ -203,5 +157,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git commit -m "Update dashboard" || echo "No changes to commit"
+          git commit -m "Update dashboard with sorting" || echo "No changes to commit"
           git push origin gh-pages
