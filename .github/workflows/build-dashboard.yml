@@ -113,12 +113,19 @@ jobs:
             MOST_RECENT_DATE=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeployDate // "N/A"')
             MOST_RECENT_STATUS=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeployStatus // "N/A"')
 
+            # Determine the status class based on MOST_RECENT_STATUS
+            if [ "$MOST_RECENT_STATUS" = "success" ]; then
+              STATUS_CLASS="status-success"
+            else
+              STATUS_CLASS="status-fail"
+            fi
+          
             echo '      <tr>' >> index.html
             echo "        <td><a class='repo-title' href='https://github.com/$REPO' target='_blank'>$REPO</a></td>" >> index.html
             echo "        <td>$ENV_NAME</td>" >> index.html
             echo "        <td>$MOST_RECENT</td>" >> index.html
             echo "        <td>$MOST_RECENT_DATE</td>" >> index.html
-            echo "        <td>$MOST_RECENT_STATUS</td>" >> index.html
+            echo "        <td class='$STATUS_CLASS'>$MOST_RECENT_STATUS</td>" >> index.html
             echo '      </tr>' >> index.html
           done
 
@@ -149,13 +156,21 @@ jobs:
               REL=$(echo "$hItem" | jq -r '.DeployRelease // "N/A"')
               OUT=$(echo "$hItem" | jq -r '.OutcomeStatus // "N/A"')
               DT=$(echo "$hItem" | jq -r '.DeployDate // "N/A"')
-
+            
+              # Determine the status class based on OUT
+              if [ "$OUT" = "success" ]; then
+                STATUS_CLASS="status-success"
+              else
+                STATUS_CLASS="status-fail"
+              fi
+            
               echo '      <tr>' >> index.html
               echo "        <td>$REL</td>" >> index.html
-              echo "        <td>$OUT</td>" >> index.html
+              echo "        <td class='$STATUS_CLASS'>$OUT</td>" >> index.html
               echo "        <td>$DT</td>" >> index.html
               echo '      </tr>' >> index.html
             done
+
 
             echo '    </tbody>' >> index.html
             echo '  </table>' >> index.html
