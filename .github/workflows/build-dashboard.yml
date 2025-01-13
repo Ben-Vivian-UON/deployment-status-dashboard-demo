@@ -79,12 +79,15 @@ jobs:
           # Read ALL_JSON from file
           ALL_JSON=$(cat all_data.json)
 
-          # Get the current time for "Last Updated"
-          LAST_UPDATED=$(date -u "+%d/%m/%Y %H:%M:%S UTC")
+          # Set the timezone to Australia/Sydney for NSW time
+          export TZ=Australia/Sydney
 
-          # Function to format date
+          # Get the current time for "Last Updated" in NSW time
+          LAST_UPDATED=$(date "+%d/%m/%Y %I:%M:%S %p %Z")
+
+          # Function to format date to NSW time
           format_date() {
-            date -u -d "$1" "+%d/%m/%Y %H:%M:%S UTC"
+            date -d "$1" "+%d/%m/%Y %I:%M:%S %p %Z"
           }
 
           # Start building the HTML
@@ -99,7 +102,6 @@ jobs:
           echo '<body>' >> index.html
 
           echo '  <h1>Deployment Dashboard</h1>' >> index.html
-          echo "  <p class='last-updated'>Last Updated: $LAST_UPDATED</p>" >> index.html
 
           # Section A: Most Recent Deployments
           echo '  <h2>Most Recent Deployments</h2>' >> index.html
@@ -185,6 +187,8 @@ jobs:
             echo '    </tbody>' >> index.html
             echo '  </table>' >> index.html
           done
+          
+          echo "  <p class='last-updated'>Last Updated: $LAST_UPDATED</p>" >> index.html
 
           echo '</body>' >> index.html
           echo '</html>' >> index.html
@@ -194,5 +198,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git commit -m "Update dashboard with improved design and last updated timestamp" || echo "No changes to commit"
+          git commit -m "Update dashboard with NSW timezone" || echo "No changes to commit"
           git push origin gh-pages
