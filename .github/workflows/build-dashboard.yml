@@ -104,6 +104,7 @@ jobs:
           echo '  <h1>Deployment Dashboard</h1>' >> index.html
 
           # Section A: Most Recent Deployments
+          echo '<section>' >> index.html
           echo '  <h2>Most Recent Deployments</h2>' >> index.html
           echo '  <table>' >> index.html
           echo '    <thead>' >> index.html
@@ -143,8 +144,10 @@ jobs:
 
           echo '    </tbody>' >> index.html
           echo '  </table>' >> index.html
+          echo '</section>' >> index.html
 
           # Section B: Full Deployment History
+          echo '<section>' >> index.html
           echo '  <h2>Full Deployment History</h2>' >> index.html
 
           echo "$ALL_JSON" | jq -c '.[]' | while read -r item; do
@@ -186,6 +189,7 @@ jobs:
 
             echo '    </tbody>' >> index.html
             echo '  </table>' >> index.html
+            echo '</section>' >> index.html
           done
           
           echo "  <p class='last-updated'>Last Updated: $LAST_UPDATED</p>" >> index.html
