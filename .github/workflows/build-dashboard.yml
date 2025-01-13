@@ -50,12 +50,12 @@ jobs:
 
             echo "Raw JSON from $REPO: $CURRENT_JSON"
 
-            # Validate and sanitize the JSON
+            # Validate and sanitise the JSON
             CURRENT_JSON=$(echo "$CURRENT_JSON" | jq '.' 2>/dev/null || echo '{}')
 
-            echo "Sanitized JSON for $REPO: $CURRENT_JSON"
+            echo "Sanitised JSON for $REPO: $CURRENT_JSON"
 
-            # Add the repository and its sanitized data to the aggregated data
+            # Add the repository and its sanitised data to the aggregated data
             ALL_DATA=$(echo "$ALL_DATA" | jq --arg r "$REPO" --argjson c "$CURRENT_JSON" '
               . + [ { "repo": $r, "status": $c } ]
             ')
@@ -69,9 +69,9 @@ jobs:
           cat all_data.json >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Debug Sanitized ALL_JSON
+      - name: Debug Sanitised ALL_JSON
         run: |
-          echo "Sanitized ALL_JSON from file:"
+          echo "Sanitised ALL_JSON from file:"
           cat all_data.json | jq '.'
 
       - name: Generate index.html
@@ -80,24 +80,39 @@ jobs:
           ALL_JSON=$(cat all_data.json)
 
           # Start building the HTML
-          echo '<html>' > index.html
-          echo '  <head><title>Deployment Dashboard</title></head>' >> index.html
-          echo '  <body>' >> index.html
-          echo '    <h1>Deployment Dashboard</h1>' >> index.html
+          echo '<!DOCTYPE html>' > index.html
+          echo '<html lang="en">' >> index.html
+          echo '<head>' >> index.html
+          echo '  <meta charset="UTF-8">' >> index.html
+          echo '  <meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
+          echo '  <title>Deployment Dashboard</title>' >> index.html
+          echo '  <style>' >> index.html
+          echo '    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }' >> index.html
+          echo '    h1, h2 { text-align: center; margin: 20px 0; }' >> index.html
+          echo '    table { width: 90%; margin: 20px auto; border-collapse: collapse; background: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }' >> index.html
+          echo '    th, td { padding: 10px 15px; text-align: left; border: 1px solid #ddd; }' >> index.html
+          echo '    th { background-color: #004a93; color: white; font-weight: bold; }' >> index.html
+          echo '    tr:hover { background-color: #f1f1f1; }' >> index.html
+          echo '    .repo-title { color: #004a93; }' >> index.html
+          echo '    footer { text-align: center; margin: 20px 0; color: #777; font-size: 14px; }' >> index.html
+          echo '  </style>' >> index.html
+          echo '</head>' >> index.html
+          echo '<body>' >> index.html
+          echo '  <h1>Deployment Dashboard</h1>' >> index.html
 
           # Section A: Most Recent Deployments
-          echo '    <h2>Most Recent Deployments</h2>' >> index.html
-          echo '    <table border="1" style="border-collapse: collapse; margin: 20px 0;">' >> index.html
-          echo '      <thead>' >> index.html
-          echo '        <tr>' >> index.html
-          echo '          <th>Repo</th>' >> index.html
-          echo '          <th>ENV_NAME</th>' >> index.html
-          echo '          <th>MostRecentDeploy</th>' >> index.html
-          echo '          <th>MostRecentDeployDate</th>' >> index.html
-          echo '          <th>MostRecentDeployStatus</th>' >> index.html
-          echo '        </tr>' >> index.html
-          echo '      </thead>' >> index.html
-          echo '      <tbody>' >> index.html
+          echo '  <h2>Most Recent Deployments</h2>' >> index.html
+          echo '  <table>' >> index.html
+          echo '    <thead>' >> index.html
+          echo '      <tr>' >> index.html
+          echo '        <th>Repository</th>' >> index.html
+          echo '        <th>Environment</th>' >> index.html
+          echo '        <th>Latest Release</th>' >> index.html
+          echo '        <th>Last Deployed Date</th>' >> index.html
+          echo '        <th>Status</th>' >> index.html
+          echo '      </tr>' >> index.html
+          echo '    </thead>' >> index.html
+          echo '    <tbody>' >> index.html
 
           echo "$ALL_JSON" | jq -c '.[]' | while read -r item; do
             REPO=$(echo "$item" | jq -r '.repo')
@@ -106,55 +121,56 @@ jobs:
             MOST_RECENT_DATE=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeployDate // "N/A"')
             MOST_RECENT_STATUS=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeployStatus // "N/A"')
 
-            echo '        <tr>' >> index.html
-            echo "          <td>$REPO</td>" >> index.html
-            echo "          <td>$ENV_NAME</td>" >> index.html
-            echo "          <td>$MOST_RECENT</td>" >> index.html
-            echo "          <td>$MOST_RECENT_DATE</td>" >> index.html
-            echo "          <td>$MOST_RECENT_STATUS</td>" >> index.html
-            echo '        </tr>' >> index.html
+            echo '      <tr>' >> index.html
+            echo "        <td><a class='repo-title' href='https://github.com/$REPO' target='_blank'>$REPO</a></td>" >> index.html
+            echo "        <td>$ENV_NAME</td>" >> index.html
+            echo "        <td>$MOST_RECENT</td>" >> index.html
+            echo "        <td>$MOST_RECENT_DATE</td>" >> index.html
+            echo "        <td>$MOST_RECENT_STATUS</td>" >> index.html
+            echo '      </tr>' >> index.html
           done
 
-          echo '      </tbody>' >> index.html
-          echo '    </table>' >> index.html
+          echo '    </tbody>' >> index.html
+          echo '  </table>' >> index.html
 
           # Section B: Full Deployment History
-          echo '    <h2>Full Deployment History</h2>' >> index.html
+          echo '  <h2>Full Deployment History</h2>' >> index.html
 
           echo "$ALL_JSON" | jq -c '.[]' | while read -r item; do
             REPO=$(echo "$item" | jq -r '.repo')
             ENV_NAME=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].ENV_NAME // "N/A"')
-            echo "    <h3>History for $REPO ($ENV_NAME)</h3>" >> index.html
+            echo "  <h3>History for <a class='repo-title' href='https://github.com/$REPO' target='_blank'>$REPO</a> ($ENV_NAME)</h3>" >> index.html
 
             HISTORY=$(echo "$item" | jq -c '.status.ProjectName[0].ProcessName[0].DeploymentHistory // []')
 
-            echo '    <table border="1" style="border-collapse: collapse; margin: 20px 0;">' >> index.html
-            echo '      <thead>' >> index.html
-            echo '        <tr>' >> index.html
-            echo '          <th>DeployRelease</th>' >> index.html
-            echo '          <th>OutcomeStatus</th>' >> index.html
-            echo '          <th>DeployDate</th>' >> index.html
-            echo '        </tr>' >> index.html
-            echo '      </thead>' >> index.html
-            echo '      <tbody>' >> index.html
+            echo '  <table>' >> index.html
+            echo '    <thead>' >> index.html
+            echo '      <tr>' >> index.html
+            echo '        <th>Release</th>' >> index.html
+            echo '        <th>Status</th>' >> index.html
+            echo '        <th>Date</th>' >> index.html
+            echo '      </tr>' >> index.html
+            echo '    </thead>' >> index.html
+            echo '    <tbody>' >> index.html
 
             echo "$HISTORY" | jq -c '.[]' | while read -r hItem; do
               REL=$(echo "$hItem" | jq -r '.DeployRelease // "N/A"')
               OUT=$(echo "$hItem" | jq -r '.OutcomeStatus // "N/A"')
               DT=$(echo "$hItem" | jq -r '.DeployDate // "N/A"')
 
-              echo '        <tr>' >> index.html
-              echo "          <td>$REL</td>" >> index.html
-              echo "          <td>$OUT</td>" >> index.html
-              echo "          <td>$DT</td>" >> index.html
-              echo '        </tr>' >> index.html
+              echo '      <tr>' >> index.html
+              echo "        <td>$REL</td>" >> index.html
+              echo "        <td>$OUT</td>" >> index.html
+              echo "        <td>$DT</td>" >> index.html
+              echo '      </tr>' >> index.html
             done
 
-            echo '      </tbody>' >> index.html
-            echo '    </table>' >> index.html
+            echo '    </tbody>' >> index.html
+            echo '  </table>' >> index.html
           done
 
-          echo '  </body>' >> index.html
+          echo '  <footer>Deployment Dashboard &copy; 2025 - University of Newcastle</footer>' >> index.html
+          echo '</body>' >> index.html
           echo '</html>' >> index.html
 
       - name: Commit and push to gh-pages
@@ -162,5 +178,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git commit -m "Update dashboard" || echo "No changes to commit"
+          git commit -m "Update dashboard with improved design" || echo "No changes to commit"
           git push origin gh-pages
