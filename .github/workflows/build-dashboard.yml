@@ -146,8 +146,8 @@ jobs:
             echo '    <thead>' >> index.html
             echo '      <tr>' >> index.html
             echo '        <th class="center">Release</th>' >> index.html
-            echo '        <th class="center">Status</th>' >> index.html
             echo '        <th class="center">Date</th>' >> index.html
+            echo '        <th class="center">Status</th>' >> index.html
             echo '      </tr>' >> index.html
             echo '    </thead>' >> index.html
             echo '    <tbody>' >> index.html
