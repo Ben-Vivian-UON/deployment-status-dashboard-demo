@@ -1,7 +1,7 @@
 name: Build Dashboard
 on:
   schedule:
-    - cron: "*/5 * * * *"  # run every 5 minutes
+    - cron: "0 */6 * * *" # every 6 hours
   workflow_dispatch:
 
 permissions:
@@ -31,9 +31,9 @@ jobs:
       - name: Fetch deployment data
         id: fetch_data
         run: |
-          # If the repos.txt file doesn't exist, exit early.
-          if [ ! -f repos.txt ]; then
-            echo "repos.txt not found - create it with the list of repos!"
+          # If the repos.txt file doesn't exist or is empty, exit early.
+          if [ ! -s repos.txt ]; then
+            echo "repos.txt is empty or missing!"
             exit 1
           fi
 
@@ -64,6 +64,11 @@ jobs:
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
+      - name: Debug ALL_JSON
+        run: |
+          echo "Debugging ALL_JSON:"
+          echo "${{ steps.fetch_data.outputs.allJson }}"
+
       - name: Generate index.html
         run: |
           ALL_JSON="${{ steps.fetch_data.outputs.allJson }}"
@@ -74,9 +79,7 @@ jobs:
           echo '  <body>' >> index.html
           echo '    <h1>Deployment Dashboard</h1>' >> index.html
 
-          ###############################################################################
-          # SECTION A: Top-Level Table (one row per repo)
-          ###############################################################################
+          # SECTION A: Top-Level Table
           echo '    <h2>Most Recent Deployments</h2>' >> index.html
           echo '    <table border="1" style="border-collapse: collapse; margin: 20px 0;">' >> index.html
           echo '      <thead>' >> index.html
@@ -109,9 +112,7 @@ jobs:
           echo '      </tbody>' >> index.html
           echo '    </table>' >> index.html
 
-          ###############################################################################
-          # SECTION B (Optional): Full DeploymentHistory per repo
-          ###############################################################################
+          # SECTION B: Full Deployment History
           echo '    <h2>Full Deployment History</h2>' >> index.html
 
           echo "$ALL_JSON" | jq -c '.[]' | while read -r item; do
@@ -119,7 +120,7 @@ jobs:
             ENV_NAME=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].ENV_NAME // "N/A"')
             echo "    <h3>History for $REPO ($ENV_NAME)</h3>" >> index.html
 
-            # Attempt to parse the entire .DeploymentHistory array
+            # Attempt to parse the .DeploymentHistory array
             HISTORY=$(echo "$item" | jq -c '.status.ProjectName[0].ProcessName[0].DeploymentHistory // []')
 
             echo '    <table border="1" style="border-collapse: collapse; margin: 20px 0;">' >> index.html
@@ -132,7 +133,6 @@ jobs:
             echo '      </thead>' >> index.html
             echo '      <tbody>' >> index.html
 
-            # Loop through each object in the .DeploymentHistory array
             echo "$HISTORY" | jq -c '.[]' | while read -r hItem; do
               REL=$(echo "$hItem" | jq -r '.DeployRelease // "N/A"')
               OUT=$(echo "$hItem" | jq -r '.OutcomeStatus // "N/A"')
