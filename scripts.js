@@ -37,8 +37,30 @@ function sortTable(colIndex, type) {
   if (isDescending) sortedRows.reverse();
   table.setAttribute('data-sort-desc', !isDescending);
 
+  // Update sort indicators
+  updateSortIndicators(colIndex, !isDescending);
+
   // Append sorted rows back to the table
   const tbody = table.querySelector('tbody');
   tbody.innerHTML = '';
   sortedRows.forEach((row) => tbody.appendChild(row));
+}
+
+/**
+ * Update sort indicators in the table headers.
+ * @param {number} colIndex - Index of the column being sorted.
+ * @param {boolean} isDescending - Whether the sorting is descending.
+ */
+function updateSortIndicators(colIndex, isDescending) {
+  const headers = document.querySelectorAll('thead th');
+  headers.forEach((header, index) => {
+    const indicator = header.querySelector('.sort-indicator');
+    if (indicator) {
+      if (index === colIndex) {
+        indicator.textContent = isDescending ? '▼' : '▲';
+      } else {
+        indicator.textContent = '▲▼';
+      }
+    }
+  });
 }
