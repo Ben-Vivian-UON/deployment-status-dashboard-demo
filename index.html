@@ -1,74 +1,90 @@
-<html>
-  <head><title>Deployment Dashboard</title></head>
-  <body>
-    <h1>Deployment Dashboard</h1>
-    <h2>Most Recent Deployments</h2>
-    <table border="1" style="border-collapse: collapse; margin: 20px 0;">
-      <thead>
-        <tr>
-          <th>Repo</th>
-          <th>ENV_NAME</th>
-          <th>MostRecentDeploy</th>
-          <th>MostRecentDeployDate</th>
-          <th>MostRecentDeployStatus</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Ben-Vivian-UON/env-var-deployment-status-demo-A</td>
-          <td>dev</td>
-          <td>Release-13</td>
-          <td>2025-01-13T00:10:08Z</td>
-          <td>success</td>
-        </tr>
-        <tr>
-          <td>Ben-Vivian-UON/env-var-deployment-status-demo-B</td>
-          <td>dev</td>
-          <td>Release-13</td>
-          <td>2025-01-13T02:09:52Z</td>
-          <td>success</td>
-        </tr>
-      </tbody>
-    </table>
-    <h2>Full Deployment History</h2>
-    <h3>History for Ben-Vivian-UON/env-var-deployment-status-demo-A (dev)</h3>
-    <table border="1" style="border-collapse: collapse; margin: 20px 0;">
-      <thead>
-        <tr>
-          <th>DeployRelease</th>
-          <th>OutcomeStatus</th>
-          <th>DeployDate</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Release-13</td>
-          <td>success</td>
-          <td>2025-01-13T00:09:09Z</td>
-        </tr>
-        <tr>
-          <td>Release-13</td>
-          <td>success</td>
-          <td>2025-01-13T00:10:08Z</td>
-        </tr>
-      </tbody>
-    </table>
-    <h3>History for Ben-Vivian-UON/env-var-deployment-status-demo-B (dev)</h3>
-    <table border="1" style="border-collapse: collapse; margin: 20px 0;">
-      <thead>
-        <tr>
-          <th>DeployRelease</th>
-          <th>OutcomeStatus</th>
-          <th>DeployDate</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Release-13</td>
-          <td>success</td>
-          <td>2025-01-13T02:09:52Z</td>
-        </tr>
-      </tbody>
-    </table>
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deployment Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+    h1, h2 { text-align: center; margin: 20px 0; }
+    table { width: 90%; margin: 20px auto; border-collapse: collapse; background: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+    th, td { padding: 10px 15px; text-align: left; border: 1px solid #ddd; }
+    th { background-color: #004a93; color: white; font-weight: bold; }
+    tr:hover { background-color: #f1f1f1; }
+    .repo-title { color: #004a93; }
+    footer { text-align: center; margin: 20px 0; color: #777; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Deployment Dashboard</h1>
+  <h2>Most Recent Deployments</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Repository</th>
+        <th>Environment</th>
+        <th>Latest Release</th>
+        <th>Last Deployed Date</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class='repo-title' href='https://github.com/Ben-Vivian-UON/env-var-deployment-status-demo-A' target='_blank'>Ben-Vivian-UON/env-var-deployment-status-demo-A</a></td>
+        <td>dev</td>
+        <td>Release-13</td>
+        <td>2025-01-13T00:10:08Z</td>
+        <td>success</td>
+      </tr>
+      <tr>
+        <td><a class='repo-title' href='https://github.com/Ben-Vivian-UON/env-var-deployment-status-demo-B' target='_blank'>Ben-Vivian-UON/env-var-deployment-status-demo-B</a></td>
+        <td>dev</td>
+        <td>Release-13</td>
+        <td>2025-01-13T02:09:52Z</td>
+        <td>success</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2>Full Deployment History</h2>
+  <h3>History for <a class='repo-title' href='https://github.com/Ben-Vivian-UON/env-var-deployment-status-demo-A' target='_blank'>Ben-Vivian-UON/env-var-deployment-status-demo-A</a> (dev)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Release</th>
+        <th>Status</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Release-13</td>
+        <td>success</td>
+        <td>2025-01-13T00:09:09Z</td>
+      </tr>
+      <tr>
+        <td>Release-13</td>
+        <td>success</td>
+        <td>2025-01-13T00:10:08Z</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>History for <a class='repo-title' href='https://github.com/Ben-Vivian-UON/env-var-deployment-status-demo-B' target='_blank'>Ben-Vivian-UON/env-var-deployment-status-demo-B</a> (dev)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Release</th>
+        <th>Status</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Release-13</td>
+        <td>success</td>
+        <td>2025-01-13T02:09:52Z</td>
+      </tr>
+    </tbody>
+  </table>
+  <footer>Deployment Dashboard &copy; 2025 - University of Newcastle</footer>
+</body>
 </html>
