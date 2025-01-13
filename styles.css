@@ -110,6 +110,22 @@ td a.repo-title:hover {
   border-radius: 3px;
 }
 
+.sort-indicator {
+  font-size: 0.8em;
+  margin-left: 5px;
+  cursor: pointer;
+  color: #555;
+}
+
+thead th {
+  position: relative;
+  padding-right: 20px;
+}
+
+thead th .sort-indicator:hover {
+  color: #000;
+}
+
 /* Responsive Table Width for Large Screens */
 @media (min-width: 1440px) {
   section {
