@@ -86,18 +86,10 @@ jobs:
           echo '  <meta charset="UTF-8">' >> index.html
           echo '  <meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
           echo '  <title>Deployment Dashboard</title>' >> index.html
-          echo '  <style>' >> index.html
-          echo '    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }' >> index.html
-          echo '    h1, h2 { text-align: center; margin: 20px 0; }' >> index.html
-          echo '    table { width: 90%; margin: 20px auto; border-collapse: collapse; background: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }' >> index.html
-          echo '    th, td { padding: 10px 15px; text-align: left; border: 1px solid #ddd; }' >> index.html
-          echo '    th { background-color: #004a93; color: white; font-weight: bold; }' >> index.html
-          echo '    tr:hover { background-color: #f1f1f1; }' >> index.html
-          echo '    .repo-title { color: #004a93; }' >> index.html
-          echo '    footer { text-align: center; margin: 20px 0; color: #777; font-size: 14px; }' >> index.html
-          echo '  </style>' >> index.html
+          echo '  <link rel="stylesheet" href="styles.css">' >> index.html
           echo '</head>' >> index.html
           echo '<body>' >> index.html
+
           echo '  <h1>Deployment Dashboard</h1>' >> index.html
 
           # Section A: Most Recent Deployments
