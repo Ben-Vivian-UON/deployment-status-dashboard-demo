@@ -138,7 +138,7 @@ jobs:
           echo "$ALL_JSON" | jq -c '.[]' | while read -r item; do
             REPO=$(echo "$item" | jq -r '.repo')
             ENV_NAME=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].ENV_NAME // "N/A"')
-            echo "  <h3>History for <a class='repo-title' href='https://github.com/$REPO' target='_blank'>$REPO</a> ($ENV_NAME)</h3>" >> index.html
+            echo "  <h3><a class='repo-title' href='https://github.com/$REPO' target='_blank'>$REPO</a> ($ENV_NAME)</h3>" >> index.html
 
             HISTORY=$(echo "$item" | jq -c '.status.ProjectName[0].ProcessName[0].DeploymentHistory // []')
 
