@@ -78,16 +78,18 @@ jobs:
         run: |
           # Read ALL_JSON from file
           ALL_JSON=$(cat all_data.json)
-          
+
           # Set the timezone to Australia/Sydney for NSW time
           export TZ=Australia/Sydney
-          
+
           # Get the current time for "Last Updated" in NSW time
           LAST_UPDATED=$(date "+%d/%m/%Y %I:%M:%S %p %Z")
-          
-          # Define a command to format a date
-          FORMAT_DATE_CMD="date -d"
-          
+
+          # Function to format date to NSW time
+          format_date() {
+            date -d "$1" "+%d/%m/%Y %I:%M:%S %p %Z"
+          }
+
           # Start building the HTML
           echo '<!DOCTYPE html>' > index.html
           echo '<html lang="en">' >> index.html
@@ -96,42 +98,41 @@ jobs:
           echo '  <meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
           echo '  <title>Deployment Dashboard</title>' >> index.html
           echo '  <link rel="stylesheet" href="styles.css">' >> index.html
-          echo '  <script src="scripts.js" defer></script>' >> index.html
           echo '</head>' >> index.html
           echo '<body>' >> index.html
-          
+
           echo '  <h1>Deployment Dashboard</h1>' >> index.html
-          
+
           # Section A: Most Recent Deployments
           echo '<section>' >> index.html
           echo '  <h2>Most Recent Deployments</h2>' >> index.html
           echo '  <table>' >> index.html
           echo '    <thead>' >> index.html
           echo '      <tr>' >> index.html
-          echo '        <th class="center" onclick="sortTable(0, \'string\')">Repository ▲▼</th>' >> index.html
-          echo '        <th class="center" onclick="sortTable(1, \'string\')">Environment ▲▼</th>' >> index.html
-          echo '        <th class="center" onclick="sortTable(2, \'string\')">Latest Release ▲▼</th>' >> index.html
-          echo '        <th class="center" onclick="sortTable(3, \'date\')">Last Deployed Date ▲▼</th>' >> index.html
-          echo '        <th class="center" onclick="sortTable(4, \'status\')">Status ▲▼</th>' >> index.html
+          echo '        <th class="center">Repository</th>' >> index.html
+          echo '        <th class="center">Environment</th>' >> index.html
+          echo '        <th class="center">Latest Release</th>' >> index.html
+          echo '        <th class="center">Last Deployed Date</th>' >> index.html
+          echo '        <th class="center">Status</th>' >> index.html
           echo '      </tr>' >> index.html
           echo '    </thead>' >> index.html
           echo '    <tbody>' >> index.html
-          
+
           echo "$ALL_JSON" | jq -c '.[]' | while read -r item; do
             REPO=$(echo "$item" | jq -r '.repo')
             ENV_NAME=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].ENV_NAME // "N/A"')
             MOST_RECENT=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeploy // "N/A"')
             RAW_DATE=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeployDate // "N/A"')
-            MOST_RECENT_DATE=$($FORMAT_DATE_CMD "$RAW_DATE" "+%d/%m/%Y %I:%M:%S %p %Z")
+            MOST_RECENT_DATE=$(format_date "$RAW_DATE")
             MOST_RECENT_STATUS=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeployStatus // "N/A"')
-          
+
             # Determine the status class based on MOST_RECENT_STATUS
             if [ "$MOST_RECENT_STATUS" = "success" ]; then
               STATUS_CLASS="status-success"
             else
               STATUS_CLASS="status-fail"
             fi
-          
+
             echo '      <tr>' >> index.html
             echo "        <td><a class='repo-title' href='https://github.com/$REPO' target='_blank'>$REPO</a></td>" >> index.html
             echo "        <td>$ENV_NAME</td>" >> index.html
@@ -140,96 +141,67 @@ jobs:
             echo "        <td class='$STATUS_CLASS'>$MOST_RECENT_STATUS</td>" >> index.html
             echo '      </tr>' >> index.html
           done
-          
+
           echo '    </tbody>' >> index.html
           echo '  </table>' >> index.html
           echo '</section>' >> index.html
+
+          # Section B: Full Deployment History
+          echo '<section>' >> index.html
+          echo '  <h2>Full Deployment History</h2>' >> index.html
+
+          echo "$ALL_JSON" | jq -c '.[]' | while read -r item; do
+            REPO=$(echo "$item" | jq -r '.repo')
+            ENV_NAME=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].ENV_NAME // "N/A"')
+            echo "  <h3><a class='repo-title' href='https://github.com/$REPO' target='_blank'>$REPO</a> ($ENV_NAME)</h3>" >> index.html
+
+            HISTORY=$(echo "$item" | jq -c '.status.ProjectName[0].ProcessName[0].DeploymentHistory // []')
+
+            echo '  <table>' >> index.html
+            echo '    <thead>' >> index.html
+            echo '      <tr>' >> index.html
+            echo '        <th class="center">Release</th>' >> index.html
+            echo '        <th class="center">Date</th>' >> index.html
+            echo '        <th class="center">Status</th>' >> index.html
+            echo '      </tr>' >> index.html
+            echo '    </thead>' >> index.html
+            echo '    <tbody>' >> index.html
+
+            echo "$HISTORY" | jq -c '.[]' | while read -r hItem; do
+              REL=$(echo "$hItem" | jq -r '.DeployRelease // "N/A"')
+              OUT=$(echo "$hItem" | jq -r '.OutcomeStatus // "N/A"')
+              RAW_DT=$(echo "$hItem" | jq -r '.DeployDate // "N/A"')
+              DT=$(format_date "$RAW_DT")
+
+              # Determine the status class based on OUT
+              if [ "$OUT" = "success" ]; then
+                STATUS_CLASS="status-success"
+              else
+                STATUS_CLASS="status-fail"
+              fi
+
+              echo '      <tr>' >> index.html
+              echo "        <td>$REL</td>" >> index.html
+              echo "        <td>$DT</td>" >> index.html
+              echo "        <td class='$STATUS_CLASS'>$OUT</td>" >> index.html
+              echo '      </tr>' >> index.html
+            done
+
+            echo '    </tbody>' >> index.html
+            echo '  </table>' >> index.html
+          done
+
+          echo '</section>' >> index.html
           
           echo "  <p class='last-updated'>Last Updated: $LAST_UPDATED</p>" >> index.html
-          
+
           echo '</body>' >> index.html
           echo '</html>' >> index.html
-
-          # # Read ALL_JSON from file
-          # ALL_JSON=$(cat all_data.json)
-
-          # # Set the timezone to Australia/Sydney for NSW time
-          # export TZ=Australia/Sydney
-
-          # # Get the current time for "Last Updated" in NSW time
-          # LAST_UPDATED=$(date "+%d/%m/%Y %I:%M:%S %p %Z")
-
-          # # Function to format date to NSW time
-          # format_date() {
-          #   date -d "$1" "+%d/%m/%Y %I:%M:%S %p %Z"
-          # }
-
-          # # Start building the HTML
-          # echo '<!DOCTYPE html>' > index.html
-          # echo '<html lang="en">' >> index.html
-          # echo '<head>' >> index.html
-          # echo '  <meta charset="UTF-8">' >> index.html
-          # echo '  <meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
-          # echo '  <title>Deployment Dashboard</title>' >> index.html
-          # echo '  <link rel="stylesheet" href="styles.css">' >> index.html
-          # echo '  <script src="scripts.js" defer></script>' >> index.html
-          # echo '</head>' >> index.html
-          # echo '<body>' >> index.html
-
-          # echo '  <h1>Deployment Dashboard</h1>' >> index.html
-
-          # # Section A: Most Recent Deployments
-          # echo '<section>' >> index.html
-          # echo '  <h2>Most Recent Deployments</h2>' >> index.html
-          # echo '  <table>' >> index.html
-          # echo '    <thead>' >> index.html
-          # echo '      <tr>' >> index.html
-          # echo '        <th class="center" onclick="sortTable(0, \'string\')">Repository ▲▼</th>' >> index.html
-          # echo '        <th class="center" onclick="sortTable(1, \'string\')">Environment ▲▼</th>' >> index.html
-          # echo '        <th class="center" onclick="sortTable(2, \'string\')">Latest Release ▲▼</th>' >> index.html
-          # echo '        <th class="center" onclick="sortTable(3, \'date\')">Last Deployed Date ▲▼</th>' >> index.html
-          # echo '        <th class="center" onclick="sortTable(4, \'status\')">Status ▲▼</th>' >> index.html
-          # echo '      </tr>' >> index.html
-          # echo '    </thead>' >> index.html
-          # echo '    <tbody>' >> index.html
-
-          # echo "$ALL_JSON" | jq -c '.[]' | while read -r item; do
-          #   REPO=$(echo "$item" | jq -r '.repo')
-          #   ENV_NAME=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].ENV_NAME // "N/A"')
-          #   MOST_RECENT=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeploy // "N/A"')
-          #   RAW_DATE=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeployDate // "N/A"')
-          #   MOST_RECENT_DATE=$(format_date "$RAW_DATE")
-          #   MOST_RECENT_STATUS=$(echo "$item" | jq -r '.status.ProjectName[0].ProcessName[0].MostRecentDeployStatus // "N/A"')
-
-          #   # Determine the status class based on MOST_RECENT_STATUS
-          #   if [ "$MOST_RECENT_STATUS" = "success" ]; then
-          #     STATUS_CLASS="status-success"
-          #   else
-          #     STATUS_CLASS="status-fail"
-          #   fi
-
-          #   echo '      <tr>' >> index.html
-          #   echo "        <td><a class='repo-title' href='https://github.com/$REPO' target='_blank'>$REPO</a></td>" >> index.html
-          #   echo "        <td>$ENV_NAME</td>" >> index.html
-          #   echo "        <td>$MOST_RECENT</td>" >> index.html
-          #   echo "        <td>$MOST_RECENT_DATE</td>" >> index.html
-          #   echo "        <td class='$STATUS_CLASS'>$MOST_RECENT_STATUS</td>" >> index.html
-          #   echo '      </tr>' >> index.html
-          # done
-
-          # echo '    </tbody>' >> index.html
-          # echo '  </table>' >> index.html
-          # echo '</section>' >> index.html
-
-          # echo "  <p class='last-updated'>Last Updated: $LAST_UPDATED</p>" >> index.html
-
-          # echo '</body>' >> index.html
-          # echo '</html>' >> index.html
 
       - name: Commit and push to gh-pages
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git commit -m "Update dashboard with sorting" || echo "No changes to commit"
+          git commit -m "Update dashboard" || echo "No changes to commit"
           git push origin gh-pages
