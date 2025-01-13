@@ -97,11 +97,11 @@ jobs:
           echo '  <table>' >> index.html
           echo '    <thead>' >> index.html
           echo '      <tr>' >> index.html
-          echo '        <th>Repository</th>' >> index.html
-          echo '        <th>Environment</th>' >> index.html
-          echo '        <th>Latest Release</th>' >> index.html
-          echo '        <th>Last Deployed Date</th>' >> index.html
-          echo '        <th>Status</th>' >> index.html
+          echo '        <th class="center">Repository</th>' >> index.html
+          echo '        <th class="center">Environment</th>' >> index.html
+          echo '        <th class="center">Latest Release</th>' >> index.html
+          echo '        <th class="center">Last Deployed Date</th>' >> index.html
+          echo '        <th class="center">Status</th>' >> index.html
           echo '      </tr>' >> index.html
           echo '    </thead>' >> index.html
           echo '    <tbody>' >> index.html
@@ -138,9 +138,9 @@ jobs:
             echo '  <table>' >> index.html
             echo '    <thead>' >> index.html
             echo '      <tr>' >> index.html
-            echo '        <th>Release</th>' >> index.html
-            echo '        <th>Status</th>' >> index.html
-            echo '        <th>Date</th>' >> index.html
+            echo '        <th class="center">Release</th>' >> index.html
+            echo '        <th class="center">Status</th>' >> index.html
+            echo '        <th class="center">Date</th>' >> index.html
             echo '      </tr>' >> index.html
             echo '    </thead>' >> index.html
             echo '    <tbody>' >> index.html
