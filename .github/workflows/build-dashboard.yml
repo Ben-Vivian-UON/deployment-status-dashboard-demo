@@ -36,27 +36,32 @@ jobs:
             echo "repos.txt is empty or missing!"
             exit 1
           fi
-
+      
           ALL_DATA='[]'  # Start as an empty JSON array
-
+      
           while read REPO; do
             echo "Fetching data from $REPO..."
-
+      
             # Attempt to read 'DEPLOYMENT_STATUS_JSON' from that repo
             CURRENT_JSON=$(gh api \
               repos/$REPO/actions/variables/DEPLOYMENT_STATUS_JSON \
               --jq '.value' 2>/dev/null || echo '{}')
-
-            echo "Repo: $REPO => $CURRENT_JSON"
-
+      
+            echo "Raw JSON from $REPO: $CURRENT_JSON"
+      
+            # Validate and sanitize the JSON (ensure it's properly quoted)
+            CURRENT_JSON=$(echo "$CURRENT_JSON" | jq '.' 2>/dev/null || echo '{}')
+      
+            echo "Sanitized JSON for $REPO: $CURRENT_JSON"
+      
             # Build our aggregator array
             ALL_DATA=$(echo "$ALL_DATA" | jq --arg r "$REPO" --argjson c "$CURRENT_JSON" '
               . + [ { "repo": $r, "status": $c } ]
             ')
           done < repos.txt
-
+      
           echo "Aggregated data: $ALL_DATA"
-
+      
           # Expose ALL_DATA to next step using the multiline output approach
           {
             echo "allJson<<EOF"
@@ -64,10 +69,10 @@ jobs:
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
-      - name: Debug ALL_JSON
+      - name: Debug Sanitized ALL_JSON
         run: |
-          echo "Debugging ALL_JSON:"
-          echo "${{ steps.fetch_data.outputs.allJson }}"
+          echo "Sanitized ALL_JSON:"
+          echo "${{ steps.fetch_data.outputs.allJson }}" | jq '.'
 
       - name: Generate index.html
         run: |
