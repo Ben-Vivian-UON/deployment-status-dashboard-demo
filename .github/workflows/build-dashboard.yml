@@ -110,11 +110,11 @@ jobs:
           echo '  <table>' >> index.html
           echo '    <thead>' >> index.html
           echo '      <tr>' >> index.html
-          echo "        <th class=\"center\" onclick=\"sortTable(0, 'string')\">Repository</th>" >> index.html
-          echo "        <th class=\"center\" onclick=\"sortTable(1, 'string')\">Environment</th>" >> index.html
-          echo "        <th class=\"center\" onclick=\"sortTable(2, 'string')\">Latest Release</th>" >> index.html
-          echo "        <th class=\"center\" onclick=\"sortTable(3, 'date')\">Last Deployed Date</th>" >> index.html
-          echo "        <th class=\"center\" onclick=\"sortTable(4, 'status')\">Status</th>" >> index.html
+          echo "        <th class=\"center\" onclick=\"sortTable(0, 'string')\">Repository <span class=\"sort-indicator\">▲▼</span></th></th>" >> index.html
+          echo "        <th class=\"center\" onclick=\"sortTable(1, 'string')\">Environment <span class=\"sort-indicator\">▲▼</span></th></th>" >> index.html
+          echo "        <th class=\"center\" onclick=\"sortTable(2, 'string')\">Latest Release <span class=\"sort-indicator\">▲▼</span></th></th>" >> index.html
+          echo "        <th class=\"center\" onclick=\"sortTable(3, 'date')\">Last Deployed Date <span class=\"sort-indicator\">▲▼</span></th></th>" >> index.html
+          echo "        <th class=\"center\" onclick=\"sortTable(4, 'status')\">Status <span class=\"sort-indicator\">▲▼</span></th></th>" >> index.html
           echo '      </tr>' >> index.html
           echo '    </thead>' >> index.html
           echo '    <tbody>' >> index.html
