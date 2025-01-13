@@ -84,3 +84,9 @@ td a.repo-title:hover {
   border-radius: 3px;
 }
 
+/* Responsive Table Width for Large Screens */
+@media (min-width: 1024px) {
+  table {
+    max-width: 800px;
+  }
+}
