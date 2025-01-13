@@ -67,6 +67,13 @@ td a.repo-title:hover {
   text-decoration: underline;
 }
 
+.last-updated {
+  text-align: center;
+  font-size: 0.9em;
+  color: #666;
+  margin-top: -10px;
+}
+
 /* Status Styling */
 .status-success {
   background-color: #e6f4ea; /* Light green background */
