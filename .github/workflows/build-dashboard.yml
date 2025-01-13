@@ -98,6 +98,7 @@ jobs:
           echo '  <meta name="viewport" content="width=device-width, initial-scale=1.0">' >> index.html
           echo '  <title>Deployment Dashboard</title>' >> index.html
           echo '  <link rel="stylesheet" href="styles.css">' >> index.html
+          echo '  <script src="scripts.js" defer></script>' >> index.html
           echo '</head>' >> index.html
           echo '<body>' >> index.html
 
@@ -109,11 +110,11 @@ jobs:
           echo '  <table>' >> index.html
           echo '    <thead>' >> index.html
           echo '      <tr>' >> index.html
-          echo '        <th class="center">Repository</th>' >> index.html
-          echo '        <th class="center">Environment</th>' >> index.html
-          echo '        <th class="center">Latest Release</th>' >> index.html
-          echo '        <th class="center">Last Deployed Date</th>' >> index.html
-          echo '        <th class="center">Status</th>' >> index.html
+          echo '        <th class="center" onclick="sortTable(0, \'string\')">Repository</th>' >> index.html
+          echo '        <th class="center" onclick="sortTable(1, \'string\')">Environment</th>' >> index.html
+          echo '        <th class="center" onclick="sortTable(2, \'string\')">Latest Release</th>' >> index.html
+          echo '        <th class="center" onclick="sortTable(3, \'date\')">Last Deployed Date</th>' >> index.html
+          echo '        <th class="center" onclick="sortTable(4, \'status\')">Status</th>' >> index.html
           echo '      </tr>' >> index.html
           echo '    </thead>' >> index.html
           echo '    <tbody>' >> index.html
